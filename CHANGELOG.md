@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- Dependabot keeps the .NET SDK and runtime images on the major version the projects target
+
 ## [0.1.0] - 2026-11-23
 
 First release.
