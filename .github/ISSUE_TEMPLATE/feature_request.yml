@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest a new money flow, query or capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that Ledgerline does not support yet?
+    validations:
+      required: true
+  - type: textarea
+    id: postings
+    attributes:
+      label: Postings
+      description: If this moves money, which accounts are debited and credited? Every entry must sum to zero per currency.
+      placeholder: |
+        player:p-1:cash:EUR   -10.00
+        house:gaming:EUR      +10.00
+  - type: textarea
+    id: api
+    attributes:
+      label: Proposed API
+      description: Request and response sketch.
+      render: json
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
