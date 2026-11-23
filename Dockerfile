@@ -2,7 +2,7 @@
 
 # The SDK stage always runs on the build machine's architecture and cross-compiles for the target,
 # so multi-arch images (linux/amd64, linux/arm64) need no emulation.
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 ARG TARGETARCH
 WORKDIR /src
 
