@@ -1,5 +1,7 @@
 using Ledgerline.Application.Abstractions;
+using Ledgerline.Application.Queries;
 using Ledgerline.Infrastructure.Persistence;
+using Ledgerline.Infrastructure.ReadModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,16 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ILedgerStore, EfLedgerStore>();
+
+        // Read side: plain SQL over its own connections, no change tracking, no aggregates.
+        services.AddSingleton<ReadConnectionFactory>();
+        services.AddSingleton<IQueryHandler<GetPlayerWallets, IReadOnlyList<AccountView>>, GetPlayerWalletsHandler>();
+        services.AddSingleton<IQueryHandler<GetAccount, AccountView?>, GetAccountHandler>();
+        services.AddSingleton<IQueryHandler<GetStatement, StatementPage?>, GetStatementHandler>();
+        services.AddSingleton<IQueryHandler<GetEntry, EntryView?>, GetEntryHandler>();
+        services.AddSingleton<IQueryHandler<GetPendingWithdrawals, IReadOnlyList<PendingWithdrawalView>>, GetPendingWithdrawalsHandler>();
+        services.AddSingleton<IQueryHandler<GetTrialBalance, IReadOnlyList<TrialBalanceLine>>, GetTrialBalanceHandler>();
+
         return services;
     }
 }
