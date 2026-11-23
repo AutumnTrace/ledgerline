@@ -69,6 +69,18 @@ internal static class QueryEndpoints
             .WithSummary("Open withdrawal holds, oldest first")
             .ProducesValidationProblem();
 
+        v1.MapGet("/rounds/{roundId}", async (string roundId, IQueryHandler<GetRoundSummary, RoundSummaryView?> handler, CancellationToken ct) =>
+            {
+                ExternalId.Require(roundId, "roundId");
+                var round = await handler.HandleAsync(new GetRoundSummary(roundId), ct)
+                    ?? throw new LedgerNotFoundException("Round", roundId);
+                return TypedResults.Ok(RoundSummaryResponse.From(round));
+            })
+            .WithName("GetRoundSummary")
+            .WithTags("Seamless wallet")
+            .WithSummary("Totals for a game round, from the asynchronous projection (eventually consistent)")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         v1.MapGet("/ledger/trial-balance", async (IQueryHandler<GetTrialBalance, IReadOnlyList<TrialBalanceLine>> handler, CancellationToken ct) =>
                 TypedResults.Ok(TrialBalanceResponse.From(await handler.HandleAsync(new GetTrialBalance(), ct))))
             .WithName("GetTrialBalance")

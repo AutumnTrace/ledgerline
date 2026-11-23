@@ -74,6 +74,13 @@ internal static class LedgerSql
         LIMIT @Take
         """;
 
+    /// <summary>Primary-key lookup on the projection table.</summary>
+    public const string RoundSummary = """
+        SELECT round_id, player_id, currency, bet_minor, win_minor, rolled_back_minor, entries, updated_at
+        FROM round_summaries
+        WHERE round_id = @RoundId
+        """;
+
     /// <summary>A full aggregate over the journal: a reporting query, not a hot path.</summary>
     public const string TrialBalance = """
         SELECT p.currency, a.type AS account_type, COUNT(DISTINCT a.id) AS accounts,

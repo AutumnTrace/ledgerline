@@ -112,6 +112,16 @@ internal sealed class GetTrialBalanceHandler(ReadConnectionFactory connections) 
     }
 }
 
+internal sealed class GetRoundSummaryHandler(ReadConnectionFactory connections) : IQueryHandler<GetRoundSummary, RoundSummaryView?>
+{
+    public async Task<RoundSummaryView?> HandleAsync(GetRoundSummary query, CancellationToken cancellationToken)
+    {
+        await using var connection = await connections.OpenAsync(cancellationToken);
+        var row = await connection.QuerySingleOrDefaultAsync<RoundSummaryRow>(new CommandDefinition(LedgerSql.RoundSummary, new { query.RoundId }, cancellationToken: cancellationToken));
+        return row is null ? null : new RoundSummaryView(row.RoundId, row.PlayerId, row.Currency, row.BetMinor, row.WinMinor, row.RolledBackMinor, (int)row.Entries, row.UpdatedAt);
+    }
+}
+
 // Dapper materialises these by reflection; the handlers map them to the public views.
 #pragma warning disable CA1812
 internal sealed class AccountRow
@@ -210,4 +220,23 @@ internal sealed class TrialBalanceRow
 
     public long BalanceMinor { get; init; }
 }
+internal sealed class RoundSummaryRow
+{
+    public string RoundId { get; init; } = string.Empty;
+
+    public string PlayerId { get; init; } = string.Empty;
+
+    public string Currency { get; init; } = string.Empty;
+
+    public long BetMinor { get; init; }
+
+    public long WinMinor { get; init; }
+
+    public long RolledBackMinor { get; init; }
+
+    public long Entries { get; init; }
+
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
 #pragma warning restore CA1812

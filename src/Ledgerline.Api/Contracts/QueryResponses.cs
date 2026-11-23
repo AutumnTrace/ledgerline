@@ -114,3 +114,29 @@ public sealed record TrialBalanceResponse(bool Balanced, IReadOnlyList<CurrencyT
 public sealed record CurrencyTrialBalance(string Currency, MoneyResponse Net, bool Balanced, IReadOnlyList<TrialBalanceLineResponse> Lines);
 
 public sealed record TrialBalanceLineResponse(AccountType AccountType, long Accounts, MoneyResponse Balance);
+
+/// <param name="Net">Bets minus rolled-back bets minus wins: what the house kept on the round.</param>
+public sealed record RoundSummaryResponse(
+    string RoundId,
+    string PlayerId,
+    MoneyResponse Bets,
+    MoneyResponse Wins,
+    MoneyResponse RolledBack,
+    MoneyResponse Net,
+    int Entries,
+    DateTimeOffset UpdatedAt)
+{
+    public static RoundSummaryResponse From(RoundSummaryView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        return new RoundSummaryResponse(
+            view.RoundId,
+            view.PlayerId,
+            MoneyResponse.From(view.BetMinor, view.Currency),
+            MoneyResponse.From(view.WinMinor, view.Currency),
+            MoneyResponse.From(view.RolledBackMinor, view.Currency),
+            MoneyResponse.From(view.NetMinor, view.Currency),
+            view.Entries,
+            view.UpdatedAt);
+    }
+}
