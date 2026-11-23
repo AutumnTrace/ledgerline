@@ -43,3 +43,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # The SDK and runtime images must stay on the .NET major the projects target (net10.0).
+      - dependency-name: "dotnet/*"
+        update-types: ["version-update:semver-major"]
