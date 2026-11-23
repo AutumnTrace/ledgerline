@@ -45,6 +45,7 @@ public sealed class Account
     public static Account Open(AccountKey key, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(key);
+        now = LedgerTime.Normalize(now);
         return new Account
         {
             Id = Guid.CreateVersion7(now),

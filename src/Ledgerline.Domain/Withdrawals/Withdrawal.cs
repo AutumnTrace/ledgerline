@@ -57,6 +57,8 @@ public sealed class Withdrawal
             throw new LedgerValidationException("amountMinor", "A withdrawal must be a positive amount.");
         }
 
+        now = LedgerTime.Normalize(now);
+
         return new Withdrawal
         {
             Id = Guid.CreateVersion7(now),
@@ -89,20 +91,20 @@ public sealed class Withdrawal
     public void Reverse(Guid entryId, string reason, DateTimeOffset now)
     {
         EnsurePending();
-        if (string.IsNullOrWhiteSpace(reason) || reason.Length > 200)
-        {
-            throw new LedgerValidationException("reason", "A reversal needs a reason of at most 200 characters.");
-        }
-
+        ReversalReason = RequireReason(reason);
         Status = WithdrawalStatus.Reversed;
-        ReversalReason = reason;
         Resolve(entryId, now);
     }
+
+    public static string RequireReason(string? reason) =>
+        string.IsNullOrWhiteSpace(reason) || reason.Length > 200
+            ? throw new LedgerValidationException("reason", "A reversal needs a reason of at most 200 characters.")
+            : reason.Trim();
 
     private void Resolve(Guid entryId, DateTimeOffset now)
     {
         ResolutionEntryId = entryId;
-        ResolvedAt = now;
+        ResolvedAt = LedgerTime.Normalize(now);
         Version++;
     }
 }
