@@ -1,15 +1,23 @@
 using Ledgerline.Application.Abstractions;
+using Ledgerline.Domain;
 using Ledgerline.Domain.Accounts;
 using Ledgerline.Domain.Journal;
 using Ledgerline.Domain.Withdrawals;
+using Ledgerline.Infrastructure.Messaging;
+using Ledgerline.Infrastructure.Outbox;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace Ledgerline.Infrastructure.Persistence;
 
-/// <summary>EF Core implementation of the write-side unit of work.</summary>
-internal sealed class EfLedgerStore(LedgerDbContext db, TimeProvider clock) : ILedgerStore
+/// <summary>
+/// EF Core implementation of the write-side unit of work. On save, the domain events raised by the
+/// aggregates become outbox rows in the same transaction: there is no window where the entry is
+/// committed but its event is lost, or the event is published for an entry that rolled back.
+/// </summary>
+internal sealed class EfLedgerStore(LedgerDbContext db, TimeProvider clock, IOptions<MessagingOptions> messaging) : ILedgerStore
 {
     public Task<JournalEntry?> FindEntryAsync(string idempotencyKey, CancellationToken cancellationToken) =>
         db.JournalEntries
@@ -52,9 +60,16 @@ internal sealed class EfLedgerStore(LedgerDbContext db, TimeProvider clock) : IL
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
+        var aggregates = db.ChangeTracker.Entries<AggregateRoot>().Select(e => e.Entity).Where(a => a.DomainEvents.Count > 0).ToList();
+        foreach (var posted in aggregates.SelectMany(a => a.DomainEvents).OfType<JournalEntryPosted>())
+        {
+            db.OutboxMessages.Add(OutboxMessage.From(posted, messaging.Value.Topic));
+        }
+
         try
         {
             await db.SaveChangesAsync(cancellationToken);
+            aggregates.ForEach(a => a.ClearDomainEvents());
         }
         catch (DbUpdateConcurrencyException ex)
         {

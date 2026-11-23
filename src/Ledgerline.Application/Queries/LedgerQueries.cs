@@ -75,3 +75,20 @@ public sealed record PendingWithdrawalView(
 
 /// <summary>Net balance per account type and currency. Across all types, each currency must net to zero.</summary>
 public sealed record TrialBalanceLine(string Currency, AccountType AccountType, long Accounts, long BalanceMinor);
+
+public sealed record GetRoundSummary(string RoundId);
+
+/// <summary>Per-round totals from the asynchronous projection. Eventually consistent with the journal.</summary>
+public sealed record RoundSummaryView(
+    string RoundId,
+    string PlayerId,
+    string Currency,
+    long BetMinor,
+    long WinMinor,
+    long RolledBackMinor,
+    int Entries,
+    DateTimeOffset UpdatedAt)
+{
+    /// <summary>What the house kept on the round: bets, minus rolled-back bets, minus wins.</summary>
+    public long NetMinor => BetMinor - RolledBackMinor - WinMinor;
+}

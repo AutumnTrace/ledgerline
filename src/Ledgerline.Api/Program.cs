@@ -4,6 +4,7 @@ using Ledgerline.Api.Errors;
 using Ledgerline.Api.Observability;
 using Ledgerline.Application;
 using Ledgerline.Infrastructure;
+using Ledgerline.Infrastructure.Outbox;
 using Ledgerline.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
@@ -33,7 +34,8 @@ builder.Services.AddOpenApi(o => o.AddDocumentTransformer((document, _, _) =>
 }));
 
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<LedgerDbContext>("database", tags: ["ready"]);
+    .AddDbContextCheck<LedgerDbContext>("database", tags: ["ready"])
+    .AddCheck<OutboxHealthCheck>("outbox", tags: ["ready"]);
 
 var app = builder.Build();
 
@@ -53,7 +55,11 @@ app.MapScalarApiReference(o => o.Title = "Ledgerline API");
 app.MapGet("/", () => Results.Redirect("/scalar")).ExcludeFromDescription();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
-app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = c => c.Tags.Contains("ready"),
+    ResponseWriter = HealthResponseWriter.WriteAsync,
+});
 
 app.MapGroup("/v1")
     .MapCommandEndpoints()
