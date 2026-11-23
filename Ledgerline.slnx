@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Ledgerline.Benchmarks/Ledgerline.Benchmarks.csproj" />
+    <Project Path="benchmarks/Ledgerline.QueryPlans/Ledgerline.QueryPlans.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Ledgerline.Api/Ledgerline.Api.csproj" />
     <Project Path="src/Ledgerline.Application/Ledgerline.Application.csproj" />
@@ -6,6 +10,7 @@
     <Project Path="src/Ledgerline.Infrastructure/Ledgerline.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Ledgerline.IntegrationTests/Ledgerline.IntegrationTests.csproj" />
     <Project Path="tests/Ledgerline.Tests/Ledgerline.Tests.csproj" />
   </Folder>
 </Solution>
