@@ -2,14 +2,16 @@ using Ledgerline.Domain;
 using Ledgerline.Domain.Accounts;
 using Ledgerline.Domain.Journal;
 using Ledgerline.Domain.Withdrawals;
+using Ledgerline.Infrastructure.Outbox;
+using Ledgerline.Infrastructure.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Ledgerline.Infrastructure.Persistence;
 
 /// <summary>
-/// The write model. Used only by command handlers (through <see cref="EfLedgerStore"/>) and the outbox;
-/// queries go through Dapper on the read side and never load these entities.
+/// The write model, plus the outbox, inbox and projection tables that must share its transactions.
+/// Queries go through Dapper on the read side and never load these entities.
 /// </summary>
 public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) : DbContext(options)
 {
@@ -20,6 +22,12 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
     public DbSet<Posting> Postings => Set<Posting>();
 
     public DbSet<Withdrawal> Withdrawals => Set<Withdrawal>();
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+
+    public DbSet<RoundSummary> RoundSummaries => Set<RoundSummary>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(LedgerDbContext).Assembly);
