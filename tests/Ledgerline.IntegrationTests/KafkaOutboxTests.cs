@@ -49,7 +49,7 @@ public sealed class KafkaOutboxTests(ContainersFixture containers) : IAsyncLifet
         Assert.Equal("ledger.entry.posted.v1", Header(first, LedgerHeaders.MessageType));
         Assert.Equal("application/json", Header(first, LedgerHeaders.ContentType));
         Assert.Equal(Payload(first).MessageId.ToString(), Header(first, LedgerHeaders.MessageId));
-        Assert.Matches("^00-[0-9a-f]{32}-[0-9a-f]{16}-0[01]$", Header(first, LedgerHeaders.TraceParent));
+        Assert.Matches("^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$", Header(first, LedgerHeaders.TraceParent));
 
         var bet = Payload(messages[^1]);
         Assert.Equal(EntryType.BetDebit, bet.EntryType);

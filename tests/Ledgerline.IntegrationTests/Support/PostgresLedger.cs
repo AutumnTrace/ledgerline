@@ -5,6 +5,7 @@ using Ledgerline.Infrastructure;
 using Ledgerline.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace Ledgerline.IntegrationTests.Support;
 
@@ -59,5 +60,12 @@ internal sealed class PostgresLedger : IAsyncDisposable
         return await query(scope.ServiceProvider.GetRequiredService<LedgerDbContext>());
     }
 
-    public ValueTask DisposeAsync() => Provider.DisposeAsync();
+    public async ValueTask DisposeAsync()
+    {
+        await Provider.DisposeAsync();
+
+        // Each test class has its own database, so its pooled connections are useless afterwards.
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        NpgsqlConnection.ClearPool(connection);
+    }
 }

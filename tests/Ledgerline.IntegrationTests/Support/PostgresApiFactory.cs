@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Npgsql;
 
 namespace Ledgerline.IntegrationTests.Support;
 
@@ -29,6 +30,13 @@ internal sealed class PostgresApiFactory(string connectionString, string? kafkaB
         {
             builder.UseSetting("Messaging:Topic", topic);
         }
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+        await using var connection = new NpgsqlConnection(connectionString);
+        NpgsqlConnection.ClearPool(connection);
     }
 }
 

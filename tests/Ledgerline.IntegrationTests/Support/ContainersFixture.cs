@@ -13,7 +13,9 @@ namespace Ledgerline.IntegrationTests.Support;
 /// </summary>
 public sealed class ContainersFixture : IAsyncLifetime
 {
-    public PostgreSqlContainer Postgres { get; } = new PostgreSqlBuilder("postgres:18-alpine").Build();
+    public PostgreSqlContainer Postgres { get; } = new PostgreSqlBuilder("postgres:18-alpine")
+        .WithCommand("-c", "max_connections=500")
+        .Build();
 
     public KafkaContainer Kafka { get; } = new KafkaBuilder("apache/kafka:4.4.0").Build();
 
@@ -39,6 +41,6 @@ public sealed class ContainersFixture : IAsyncLifetime
             await create.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
 
-        return new NpgsqlConnectionStringBuilder(Postgres.GetConnectionString()) { Database = name, MaxPoolSize = 200 }.ConnectionString;
+        return new NpgsqlConnectionStringBuilder(Postgres.GetConnectionString()) { Database = name, MaxPoolSize = 60 }.ConnectionString;
     }
 }
