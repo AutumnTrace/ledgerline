@@ -38,6 +38,7 @@ jobs:
           dotnet test --no-build -c Release
           --filter "Category!=Integration"
           --logger "trx;LogFileName=unit.trx"
+          --collect "XPlat Code Coverage"
           --results-directory TestResults/unit
 
       - name: Upload test results
@@ -46,6 +47,100 @@ jobs:
         with:
           name: unit-test-results
           path: TestResults/unit/**
+
+  integration:
+    name: Integration tests (Testcontainers)
+    runs-on: ubuntu-latest
+    needs: unit
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Pre-pull container images
+        run: docker pull -q postgres:18-alpine && docker pull -q apache/kafka:4.4.0
+
+      - name: Integration tests (PostgreSQL 18, Kafka 4)
+        run: >
+          dotnet test tests/Ledgerline.IntegrationTests -c Release
+          --logger "trx;LogFileName=integration.trx"
+          --logger "console;verbosity=normal"
+          --collect "XPlat Code Coverage"
+          --results-directory TestResults/integration
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: integration-test-results
+          path: TestResults/integration/**
+
+  coverage:
+    name: Coverage report
+    runs-on: ubuntu-latest
+    needs: [unit, integration]
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: "*-test-results"
+          path: results
+
+      - name: Merge unit and integration coverage
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: results/**/coverage.cobertura.xml
+          targetdir: coverage
+          reporttypes: MarkdownSummaryGithub;Cobertura
+          classfilters: "-Ledgerline.Infrastructure.Persistence.Migrations.*"
+
+      - name: Publish summary
+        run: cat coverage/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage/**
+
+  query-plans:
+    name: Query plans (PostgreSQL, EXPLAIN ANALYZE)
+    runs-on: ubuntu-latest
+    needs: unit
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: ledgerline
+          POSTGRES_PASSWORD: ledgerline
+          POSTGRES_DB: ledgerline
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ledgerline"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Seed 2M postings and explain the hot queries
+        run: >
+          dotnet run -c Release --project benchmarks/Ledgerline.QueryPlans --
+          "Host=localhost;Username=ledgerline;Password=ledgerline;Database=ledgerline;Command Timeout=600"
+          query-plans.md
+
+      - name: Publish the report to the job summary
+        run: cat query-plans.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: query-plans
+          path: query-plans.md
 
   docker:
     name: Docker image and end-to-end smoke test
