@@ -50,13 +50,13 @@ var deepCursor = await ScalarAsync<long>($"SELECT id FROM postings WHERE account
 var anyEntry = await ScalarAsync<Guid>("SELECT md5('tx-424242')::uuid");
 
 // EF Core queries, rendered with the provider's own SQL generator (values inlined as constants).
-var idempotencyLookup = db.JournalEntries.Include(e => e.Postings).Where(e => e.IdempotencyKey == "wallet:tx-424242").Take(2).ToQueryString();
-var outboxBatch = db.OutboxMessages.Where(m => m.ProcessedAt == null).OrderBy(m => m.Id).Take(100).ToQueryString();
+var idempotencyLookup = EfQueryText.Parse(db.JournalEntries.Include(e => e.Postings).Where(e => e.IdempotencyKey == "wallet:tx-424242").Take(2).ToQueryString());
+var outboxBatch = EfQueryText.Parse(db.OutboxMessages.Where(m => m.ProcessedAt == null).OrderBy(m => m.Id).Take(100).ToQueryString());
 
 var queries = new List<PlanQuery>
 {
     new("Idempotency check (write side, every command)", "Unique index `ix_journal_entries_idempotency_key`, then `ix_postings_entry_id` for the replay body.",
-        idempotencyLookup, []),
+        idempotencyLookup.Sql, idempotencyLookup.Parameters),
     new("Statement, first page (player with ~50k postings)", "Covering index `ix_postings_account_statement`, walked backwards: an index-only scan that stops after 51 rows.",
         LedgerSql.StatementFirstPage, [new("AccountId", heavy), new("Take", 51)]),
     new("Statement, page 500 by keyset cursor", "Same index; `id < @Before` seeks straight to the page, so depth does not matter.",
@@ -70,7 +70,7 @@ var queries = new List<PlanQuery>
     new("Open withdrawal holds", "Partial index `ix_withdrawals_pending` holds only the 1% still Reserved.",
         LedgerSql.PendingWithdrawals, [new("Take", 100)]),
     new("Outbox, next batch (dispatcher poll)", "Partial index `ix_outbox_messages_pending` holds only the unpublished backlog, not the million published rows.",
-        outboxBatch, []),
+        outboxBatch.Sql, outboxBatch.Parameters),
     new("Derived balance of a hot operator account", "Index-only scan over every house posting (~1M). The honest cost of not storing operator balances; see the roadmap.",
         LedgerSql.Account, [new("AccountId", house)]),
 };
