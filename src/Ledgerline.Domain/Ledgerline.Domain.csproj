@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Ledger domain model: money, accounts, balanced journal entries and withdrawals. No framework dependencies.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ledgerline.Tests" />
+  </ItemGroup>
+
+</Project>
