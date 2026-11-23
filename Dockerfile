@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Restore first so the dependency layer is cached between code changes.
-COPY global.json Directory.Build.props Directory.Packages.props Ledgerline.slnx ./
+COPY global.json Directory.Build.props Directory.Packages.props Ledgerline.slnx .editorconfig ./
 COPY src/Ledgerline.Domain/Ledgerline.Domain.csproj src/Ledgerline.Domain/
 COPY src/Ledgerline.Application/Ledgerline.Application.csproj src/Ledgerline.Application/
 COPY src/Ledgerline.Infrastructure/Ledgerline.Infrastructure.csproj src/Ledgerline.Infrastructure/
