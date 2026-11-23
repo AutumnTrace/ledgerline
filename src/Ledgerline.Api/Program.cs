@@ -56,7 +56,8 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => fa
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
 
 app.MapGroup("/v1")
-    .MapCommandEndpoints();
+    .MapCommandEndpoints()
+    .MapQueryEndpoints();
 
 await app.RunAsync();
 
