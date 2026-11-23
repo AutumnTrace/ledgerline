@@ -61,7 +61,9 @@ jobs:
         with:
           context: .
           load: true
-          tags: ledgerline:ci
+          tags: |
+            ledgerline:ci
+            ledgerline:local
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
