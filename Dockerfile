@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# The SDK stage always runs on the build machine's architecture and cross-compiles for the target,
+# so multi-arch images (linux/amd64, linux/arm64) need no emulation.
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG TARGETARCH
 WORKDIR /src
 
 # Restore first so the dependency layer is cached between code changes.
@@ -9,10 +12,10 @@ COPY src/Ledgerline.Domain/Ledgerline.Domain.csproj src/Ledgerline.Domain/
 COPY src/Ledgerline.Application/Ledgerline.Application.csproj src/Ledgerline.Application/
 COPY src/Ledgerline.Infrastructure/Ledgerline.Infrastructure.csproj src/Ledgerline.Infrastructure/
 COPY src/Ledgerline.Api/Ledgerline.Api.csproj src/Ledgerline.Api/
-RUN dotnet restore src/Ledgerline.Api/Ledgerline.Api.csproj
+RUN dotnet restore src/Ledgerline.Api/Ledgerline.Api.csproj -a $TARGETARCH
 
 COPY src/ src/
-RUN dotnet publish src/Ledgerline.Api/Ledgerline.Api.csproj -c Release -o /app --no-restore \
+RUN dotnet publish src/Ledgerline.Api/Ledgerline.Api.csproj -c Release -a $TARGETARCH --no-self-contained --no-restore -o /app \
     && mkdir -p /data
 
 # Chiseled Ubuntu: no shell, no package manager, non-root by default.

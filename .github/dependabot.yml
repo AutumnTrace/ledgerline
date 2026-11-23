@@ -1,0 +1,45 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      platform:
+        patterns: ["Microsoft.*", "Npgsql*", "EFCore.*", "Serilog*", "Scalar.*"]
+      opentelemetry:
+        patterns: ["OpenTelemetry*", "Azure.Monitor.*"]
+      messaging-and-resilience:
+        patterns: ["Confluent.*", "Polly*", "Dapper"]
+      testing:
+        patterns: ["xunit*", "coverlet.*", "CsCheck", "Testcontainers*", "BenchmarkDotNet"]
+    ignore:
+      # These track the .NET major version; moving to the next major is a deliberate framework upgrade.
+      - dependency-name: "Microsoft.AspNetCore.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.EntityFrameworkCore*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.Extensions.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Npgsql*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "EFCore.NamingConventions"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Serilog.AspNetCore"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "dotnet-ef"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
