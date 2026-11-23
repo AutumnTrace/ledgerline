@@ -57,6 +57,7 @@ public sealed class JournalEntry : AggregateRoot
         ArgumentNullException.ThrowIfNull(header);
         ArgumentNullException.ThrowIfNull(legs);
         Validate(legs);
+        now = LedgerTime.Normalize(now);
 
         foreach (var leg in legs)
         {

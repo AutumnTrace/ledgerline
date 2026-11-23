@@ -1,6 +1,9 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Ledgerline.Api/Ledgerline.Api.csproj" />
+    <Project Path="src/Ledgerline.Application/Ledgerline.Application.csproj" />
     <Project Path="src/Ledgerline.Domain/Ledgerline.Domain.csproj" />
+    <Project Path="src/Ledgerline.Infrastructure/Ledgerline.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Ledgerline.Tests/Ledgerline.Tests.csproj" />
