@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <Description>Seeds PostgreSQL with a realistic ledger and records EXPLAIN (ANALYZE, BUFFERS) for the service's hot queries.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Ledgerline.Infrastructure\Ledgerline.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
