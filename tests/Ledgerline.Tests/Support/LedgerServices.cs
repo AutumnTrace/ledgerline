@@ -23,7 +23,10 @@ internal sealed class LedgerServices : IAsyncDisposable
 
     public CommandDispatcher Dispatcher => Provider.GetRequiredService<CommandDispatcher>();
 
-    public static async Task<LedgerServices> CreateAsync(IDictionary<string, string?>? overrides = null)
+    public T Get<T>()
+        where T : notnull => Provider.GetRequiredService<T>();
+
+    public static async Task<LedgerServices> CreateAsync(IDictionary<string, string?>? overrides = null, Action<IServiceCollection>? configureServices = null)
     {
         var database = new SqliteTestDatabase();
         var settings = new Dictionary<string, string?>
@@ -43,6 +46,7 @@ internal sealed class LedgerServices : IAsyncDisposable
             .AddMetrics()
             .AddLedgerApplication()
             .AddLedgerInfrastructure(configuration);
+        configureServices?.Invoke(services);
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         await provider.InitializeLedgerDatabaseAsync(TestContext.Current.CancellationToken);

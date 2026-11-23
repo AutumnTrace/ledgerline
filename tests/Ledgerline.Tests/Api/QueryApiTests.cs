@@ -152,6 +152,36 @@ public sealed class QueryApiTests(LedgerApiFactory factory) : IClassFixture<Ledg
         Assert.Contains(gbp.GetProperty("lines").EnumerateArray(), l => l.GetProperty("accountType").GetString() == "HouseGaming");
     }
 
+    [Fact]
+    public async Task Round_totals_arrive_through_the_outbox_relay_and_the_projection()
+    {
+        var player = NewPlayer();
+        var roundId = $"{player}-round";
+        await Post("/v1/deposits", new { transactionId = $"{player}-dep", provider = "northwind-pay", playerId = player, currency = "EUR", amountMinor = 10_000 });
+        await Post("/v1/wallet/bets", new { transactionId = $"{player}-bet", playerId = player, roundId, currency = "EUR", amountMinor = 2_500 });
+        await Post("/v1/wallet/wins", new { transactionId = $"{player}-win", playerId = player, roundId, currency = "EUR", amountMinor = 6_000 });
+
+        // Eventually consistent: the projection is fed asynchronously by the outbox dispatcher.
+        JsonElement? round = null;
+        for (var attempt = 0; attempt < 100 && round is null; attempt++)
+        {
+            var response = await _client.GetAsync($"/v1/rounds/{roundId}", TestContext.Current.CancellationToken);
+            if (response.StatusCode == HttpStatusCode.OK && (await response.ReadJsonAsync()) is { } json && json.GetProperty("entries").GetInt32() == 2)
+            {
+                round = json;
+            }
+            else
+            {
+                await Task.Delay(50, TestContext.Current.CancellationToken);
+            }
+        }
+
+        Assert.NotNull(round);
+        Assert.Equal(2_500, round.Value.GetProperty("bets").GetProperty("minor").GetInt64());
+        Assert.Equal(6_000, round.Value.GetProperty("wins").GetProperty("minor").GetInt64());
+        Assert.Equal("-35.00", round.Value.GetProperty("net").GetProperty("amount").GetString());
+    }
+
     private async Task<JsonElement> Post(string url, object body)
     {
         var response = await _client.PostJsonAsync(url, body);
