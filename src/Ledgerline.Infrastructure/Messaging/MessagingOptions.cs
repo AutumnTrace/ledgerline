@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
 
 namespace Ledgerline.Infrastructure.Messaging;
 
@@ -20,7 +21,7 @@ public sealed class MessagingOptions
     [Required, RegularExpression("^[a-zA-Z0-9._-]{1,249}$")]
     public string Topic { get; set; } = "ledger.entries.v1";
 
-    [Required]
+    [Required, ValidateObjectMembers]
     public KafkaOptions Kafka { get; set; } = new();
 
     /// <summary>Hosts the round-summary projector (an inbox-deduplicated consumer of the ledger topic) in this process.</summary>
