@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-26
+
 ### Changed
 
 - Dependabot keeps the .NET SDK and runtime images on the major version the projects target
@@ -33,5 +35,6 @@ First release.
 - **CI**: unit and integration tests, merged coverage summary, `EXPLAIN (ANALYZE, BUFFERS)` report over two million seeded postings, image build, end-to-end smoke test of the compose stack, CodeQL. Image published to GHCR on release tags (#3, #4, #5)
 - Architecture decision records, data model and error catalogue (#5)
 
-[Unreleased]: https://github.com/AutumnTrace/ledgerline/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AutumnTrace/ledgerline/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/AutumnTrace/ledgerline/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/AutumnTrace/ledgerline/releases/tag/v0.1.0
