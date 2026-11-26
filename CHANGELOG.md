@@ -9,6 +9,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Dependabot keeps the .NET SDK and runtime images on the major version the projects target
 
+### Fixed
+
+- Settings under `Messaging:Kafka` (`TopicPartitions`, `ReplicationFactor`, `ClientId`, `ConsumerGroup`) are validated at startup like the rest. `ValidateDataAnnotations` does not look inside nested option objects, so their attributes were never checked
+
 ## [0.1.0] - 2026-11-23
 
 First release.
